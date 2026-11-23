@@ -1,0 +1,695 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080d12">
+<title>NEON SNAKE — Arcade Experience</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@500;600;700;800&display=swap');
+
+:root {
+  --bg: #080d12;
+  --panel: #111a20;
+  --green: #a3ff65;
+  --muted: #84938e;
+  --border: rgba(163,255,101,.13);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 50% 0%, #193421 0%, transparent 45%),
+    var(--bg);
+  color: #f4f8f2;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: .13;
+  background-image:
+    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.navbar {
+  height: 78px;
+  max-width: 1200px;
+  padding: 0 25px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--green);
+  color: #09120a;
+  font-size: 23px;
+}
+
+.nav-tag {
+  color: var(--green);
+  border: 1px solid var(--border);
+  padding: 8px 13px;
+  border-radius: 30px;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.container {
+  max-width: 1050px;
+  margin: 65px auto;
+  padding: 0 22px;
+}
+
+.intro {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.eyebrow {
+  color: var(--green);
+  font-size: 11px;
+  letter-spacing: 4px;
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(35px, 7vw, 64px);
+  letter-spacing: 3px;
+  line-height: 1.2;
+}
+
+h1 span {
+  color: var(--green);
+  text-shadow: 0 0 35px #a3ff6555;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-top: 14px;
+  font-size: 14px;
+}
+
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 275px;
+  gap: 22px;
+  align-items: stretch;
+}
+
+.card {
+  background: linear-gradient(145deg, #14211b, #10171b);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 23px;
+  box-shadow: 0 20px 60px #0005;
+}
+
+.game-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.game-top strong {
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.live {
+  color: var(--green);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.live::before {
+  content: "●";
+  margin-right: 7px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  50% { opacity: .25; }
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.stat {
+  padding: 14px;
+  background: #080f11;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.stat small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.stat strong {
+  font-family: 'Orbitron', sans-serif;
+  color: var(--green);
+  font-size: 22px;
+}
+
+.canvas-wrap {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #a3ff6545;
+  border-radius: 13px;
+  box-shadow: 0 0 30px #a3ff6510;
+}
+
+canvas {
+  width: 100%;
+  display: block;
+  aspect-ratio: 1;
+  background: #080f12;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 20px;
+  background: #080d12bb;
+  backdrop-filter: blur(7px);
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.overlay h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 23px;
+  color: var(--green);
+  margin-bottom: 12px;
+}
+
+.overlay p {
+  color: #b1beb5;
+  font-size: 12px;
+  line-height: 1.8;
+  margin-bottom: 17px;
+}
+
+.controls-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+button {
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: .2s;
+}
+
+.primary {
+  flex: 1;
+  background: var(--green);
+  color: #09120a;
+  padding: 15px;
+  border-radius: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.secondary {
+  background: #202d29;
+  color: white;
+  border: 1px solid var(--border);
+  padding: 15px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.12);
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+
+.side-title {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  margin-bottom: 17px;
+}
+
+.instructions {
+  color: #9eaca3;
+  font-size: 12px;
+  line-height: 2.2;
+}
+
+.key {
+  display: inline-block;
+  color: var(--green);
+  background: #080f11;
+  border: 1px solid var(--border);
+  padding: 1px 7px;
+  border-radius: 5px;
+  font-weight: 700;
+}
+
+.tip {
+  color: var(--green);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.mobile-controls {
+  display: grid;
+  grid-template-columns: repeat(3, 48px);
+  gap: 7px;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.mobile-controls button {
+  height: 45px;
+  background: #24372a;
+  color: var(--green);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 18px;
+  touch-action: manipulation;
+}
+
+.mobile-controls button:active {
+  background: var(--green);
+  color: #080d12;
+}
+
+footer {
+  text-align: center;
+  color: #64746c;
+  font-size: 11px;
+  padding: 25px;
+  letter-spacing: 1px;
+}
+
+@media(max-width: 750px) {
+  .game-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .container {
+    margin: 35px auto;
+  }
+
+  .sidebar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media(max-width: 430px) {
+  .sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 15px;
+  }
+
+  .navbar {
+    padding: 0 16px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="navbar">
+  <div class="brand">
+    <div class="logo">ϟ</div>
+    NEON ARCADE
+  </div>
+  <div class="nav-tag">● ONLINE ARCADE</div>
+</header>
+
+<main class="container">
+
+  <section class="intro">
+    <div class="eyebrow">THE CLASSIC REIMAGINED</div>
+    <h1>NEON <span>SNAKE</span></h1>
+    <p class="subtitle">One snake. Endless hunger. How high can you score?</p>
+  </section>
+
+  <section class="game-layout">
+
+    <div class="card">
+
+      <div class="game-top">
+        <strong>GAME ARENA</strong>
+        <span class="live">READY TO PLAY</span>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <small>YOUR SCORE</small>
+          <strong id="score">000</strong>
+        </div>
+        <div class="stat">
+          <small>BEST SCORE</small>
+          <strong id="best">000</strong>
+        </div>
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="board" width="500" height="500"></canvas>
+
+        <div class="overlay" id="overlay">
+          <h2 id="overlayTitle">READY?</h2>
+          <p id="overlayText">Enter the arena and beat your high score.</p>
+          <button class="primary" onclick="startGame()">START GAME →</button>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <button class="primary" onclick="startGame()">RESTART</button>
+        <button class="secondary" id="pauseBtn" onclick="pauseGame()">Ⅱ PAUSE</button>
+      </div>
+
+      <div class="mobile-controls">
+        <span></span>
+        <button onclick="setDirection('up')">↑</button>
+        <span></span>
+        <button onclick="setDirection('left')">←</button>
+        <button onclick="setDirection('down')">↓</button>
+        <button onclick="setDirection('right')">→</button>
+      </div>
+
+    </div>
+
+    <aside class="sidebar">
+
+      <div class="card">
+        <h3 class="side-title">HOW TO PLAY</h3>
+        <div class="instructions">
+          <p><span class="key">↑</span> Move Up</p>
+          <p><span class="key">↓</span> Move Down</p>
+          <p><span class="key">←</span> Move Left</p>
+          <p><span class="key">→</span> Move Right</p>
+          <p><span class="key">SPACE</span> Pause / Resume</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="side-title">MISSION OBJECTIVE</h3>
+        <p class="tip">
+          ✦ Collect the glowing food.<br>
+          ✦ Every food gives 10 points.<br>
+          ✦ Avoid walls and yourself.<br>
+          ✦ Beat your personal record!
+        </p>
+      </div>
+
+      <div class="card">
+        <h3 class="side-title">ARCADE STATUS</h3>
+        <p class="instructions">
+          MODE: CLASSIC<br>
+          DIFFICULTY: NORMAL<br>
+          GRID: 20 × 20<br>
+          POINTS: +10 / FOOD
+        </p>
+      </div>
+
+    </aside>
+  </section>
+
+</main>
+
+<footer>
+  NEON ARCADE © 2026 · BUILT FOR THE LOVE OF GAMING
+</footer>
+
+<script>
+const canvas = document.getElementById("board");
+const ctx = canvas.getContext("2d");
+const N = 20;
+const CELL = 25;
+
+let snake, food, direction, nextDirection;
+let score = 0;
+let best = Number(localStorage.getItem("neonSnakeBest")) || 0;
+let timer = null;
+let running = false;
+let paused = false;
+
+document.getElementById("best").textContent = String(best).padStart(3,"0");
+
+function newFood() {
+  let f;
+  do {
+    f = {
+      x: Math.floor(Math.random()*N),
+      y: Math.floor(Math.random()*N)
+    };
+  } while(snake.some(p => p.x===f.x && p.y===f.y));
+  return f;
+}
+
+function startGame() {
+  clearInterval(timer);
+
+  snake = [
+    {x: 10,y: 10},
+    {x: 9,y: 10},
+    {x: 8,y: 10}
+  ];
+
+  direction = "right";
+  nextDirection = "right";
+  score = 0;
+  running = true;
+  paused = false;
+  food = newFood();
+
+  document.getElementById("score").textContent = "000";
+  document.getElementById("overlay").classList.add("hidden");
+  document.getElementById("pauseBtn").textContent = "Ⅱ PAUSE";
+
+  draw();
+  timer = setInterval(update,125);
+}
+
+function setDirection(d) {
+  const opposite = {
+    up:"down", down:"up",
+    left:"right", right:"left"
+  };
+
+  if(!running || paused) return;
+
+  if(d !== opposite[direction]) {
+    nextDirection = d;
+  }
+}
+
+document.addEventListener("keydown", e => {
+  const keys = {
+    ArrowUp:"up", ArrowDown:"down",
+    ArrowLeft:"left", ArrowRight:"right",
+    w:"up", s:"down", a:"left", d:"right"
+  };
+
+  if(keys[e.key]) {
+    e.preventDefault();
+    setDirection(keys[e.key]);
+  }
+
+  if(e.code === "Space") {
+    e.preventDefault();
+    pauseGame();
+  }
+});
+
+function pauseGame() {
+  if(!running) return;
+
+  if(paused) {
+    paused = false;
+    timer = setInterval(update,125);
+    document.getElementById("pauseBtn").textContent = "Ⅱ PAUSE";
+  } else {
+    paused = true;
+    clearInterval(timer);
+    document.getElementById("pauseBtn").textContent = "▶ RESUME";
+  }
+}
+
+function update() {
+  direction = nextDirection;
+
+  const head = {...snake[0]};
+
+  if(direction==="up") head.y--;
+  if(direction==="down") head.y++;
+  if(direction==="left") head.x--;
+  if(direction==="right") head.x++;
+
+  const eating = head.x===food.x && head.y===food.y;
+
+  const bodyToCheck = eating ? snake : snake.slice(0,-1);
+
+  if(
+    head.x<0 || head.x>=N ||
+    head.y<0 || head.y>=N ||
+    bodyToCheck.some(p => p.x===head.x && p.y===head.y)
+  ) {
+    gameOver();
+    return;
+  }
+
+  snake.unshift(head);
+
+  if(eating) {
+    score += 10;
+    document.getElementById("score").textContent =
+      String(score).padStart(3,"0");
+
+    if(score > best) {
+      best = score;
+      localStorage.setItem("neonSnakeBest",best);
+      document.getElementById("best").textContent =
+        String(best).padStart(3,"0");
+    }
+
+    if(snake.length===N*N) {
+      gameOver("YOU WON!");
+      return;
+    }
+
+    food = newFood();
+  } else {
+    snake.pop();
+  }
+
+  draw();
+}
+
+function roundedRect(x,y,w,h,r) {
+  ctx.beginPath();
+  ctx.roundRect(x,y,w,h,r);
+  ctx.fill();
+}
+
+function draw() {
+  ctx.fillStyle = "#080f12";
+  ctx.fillRect(0,0,500,500);
+
+  ctx.strokeStyle = "#ffffff08";
+  ctx.lineWidth = 1;
+
+  for(let i=0;i<=N;i++) {
+    ctx.beginPath();
+    ctx.moveTo(i*CELL,0);
+    ctx.lineTo(i*CELL,500);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0,i*CELL);
+    ctx.lineTo(500,i*CELL);
+    ctx.stroke();
+  }
+
+  ctx.shadowBlur = 22;
+  ctx.shadowColor = "#ff5b70";
+  ctx.fillStyle = "#ff647b";
+  ctx.beginPath();
+  ctx.arc(
+    food.x*CELL+12.5,
+    food.y*CELL+12.5,
+    8,0,Math.PI*2
+  );
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+
+  snake.forEach((p,i) => {
+    ctx.fillStyle = i===0 ? "#d5ffad" : "#82e84e";
+    ctx.shadowBlur = i===0 ? 16 : 5;
+    ctx.shadowColor = "#a3ff65";
+    roundedRect(
+      p.x*CELL+2,
+      p.y*CELL+2,
+      CELL-4,
+      CELL-4,
+      6
+    );
+  });
+
+  ctx.shadowBlur = 0;
+}
+
+function gameOver(title="GAME OVER") {
+  clearInterval(timer);
+  running = false;
+
+  document.getElementById("overlayTitle").textContent = title;
+  document.getElementById("overlayText").textContent =
+    "Your final score: "+score+" · Ready for another round?";
+  document.getElementById("overlay").classList.remove("hidden");
+  document.getElementById("pauseBtn").textContent = "Ⅱ PAUSE";
+}
+
+draw();
+</script>
+
+</body>
+</html>
